@@ -3,7 +3,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_INI_DIR=/usr/local/etc/php \
     ORACLE_HOME=/opt/oracle/instantclient \
-    LD_LIBRARY_PATH=/opt/oracle/instantclient:/usr/sap/nwrfcsdk/lib:${LD_LIBRARY_PATH} \
     PATH=/opt/oracle/instantclient:${PATH}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -24,21 +23,17 @@ RUN wget https://download.oracle.com/otn_software/linux/instantclient/216000/ins
 && unzip instantclient-sqlplus-linux.x64-21.6.0.0.0dbru.zip -d /opt/oracle \
 && rm -rf *.zip \
 && mv /opt/oracle/instantclient_21_6 /opt/oracle/instantclient
-RUN echo /opt/oracle/instantclient/ > /etc/ld.so.conf.d/oci.conf && ldconfig
+COPY nwrfcsdk.zip /opt/
+RUN unzip /opt/nwrfcsdk.zip -d /usr/sap && rm -f /opt/nwrfcsdk.zip
+RUN echo -e "/opt/oracle/instantclient\n/usr/sap/nwrfcsdk/lib" > /etc/ld.so.conf.d/oci.conf && ldconfig
 
-# RUN docker-php-ext-configure pdo_oci --with-pdo-oci=instantclient,/opt/oracle/instantclient,21.1
-# RUN docker-php-ext-install pdo_oci
 RUN echo 'instantclient,/opt/oracle/instantclient/' | pecl install oci8
 RUN docker-php-ext-enable oci8
 RUN echo 'instantclient,/opt/oracle/instantclient,21.1' | pecl install pdo_oci
 RUN docker-php-ext-enable pdo_oci
-# RUN pecl install pdo_oci && docker-php-ext-enable pdo_oci
-
-COPY nwrfcsdk.zip /opt/
-RUN unzip /opt/nwrfcsdk.zip -d /usr/sap && rm -f /opt/nwrfcsdk.zip
 RUN cd /usr/src && git clone --depth=1 --branch=1.x --single-branch https://github.com/gkralik/php7-sapnwrfc.git && cd php7-sapnwrfc \
 && phpize && ./configure && make -j"$(nproc)" && make install
-RUN echo "extension=sapnwrfc.so" > "${PHP_INI_DIR}/conf.d/docker-php-ext-sapnwrfc.ini" && ldconfig
+RUN echo "extension=sapnwrfc.so" > "${PHP_INI_DIR}/conf.d/docker-php-ext-sapnwrfc.ini"
 RUN apt-get purge -y autoconf automake libtool && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://getcomposer.org/installer -o /tmp/composer-setup.php \
