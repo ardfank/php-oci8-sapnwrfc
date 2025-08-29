@@ -1,9 +1,9 @@
 name: Docker Image CI
 on:
-  push:
-    branches: [ "php84","php74" ]
-  pull_request:
-    branches: [ "php84","php74" ]
+  # push:
+  #   branches: [ "php84","php74" ]
+  # pull_request:
+  #   branches: [ "php84","php74" ]
   workflow_dispatch:
 
 env:
