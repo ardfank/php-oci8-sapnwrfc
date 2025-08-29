@@ -1,4 +1,4 @@
-FROM php:8.4-fpm-bullseye
+FROM php:7.4-fpm-bullseye
 ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_INI_DIR=/usr/local/etc/php \
@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
  && docker-php-ext-install -j"$(nproc)" gd mysqli pdo_mysql pgsql pdo_pgsql zip \
     soap bcmath
-RUN pecl install redis && docker-php-ext-enable redis
+RUN pecl install redis-5.3.7 && docker-php-ext-enable redis
 
 RUN mkdir /opt/oracle
 RUN wget https://download.oracle.com/otn_software/linux/instantclient/216000/instantclient-basic-linux.x64-21.6.0.0.0dbru.zip \
@@ -27,10 +27,12 @@ COPY nwrfcsdk.zip /opt/
 RUN unzip /opt/nwrfcsdk.zip -d /usr/sap && rm -f /opt/nwrfcsdk.zip
 RUN echo -e "/opt/oracle/instantclient\n/usr/sap/nwrfcsdk/lib" > /etc/ld.so.conf.d/oci.conf && ldconfig
 
-RUN echo 'instantclient,/opt/oracle/instantclient/' | pecl install oci8
+RUN echo 'instantclient,/opt/oracle/instantclient/' | pecl install oci8-2.2.0
 RUN docker-php-ext-enable oci8
-RUN echo 'instantclient,/opt/oracle/instantclient,21.6' | pecl install pdo_oci
+RUN docker-php-ext-configure pdo_oci --with-pdo-oci=instantclient,/opt/oracle/instantclient,21.6
+RUN docker-php-ext-install pdo_oci
 RUN docker-php-ext-enable pdo_oci
+
 RUN cd /usr/src && git clone --depth=1 --branch=1.x --single-branch https://github.com/gkralik/php7-sapnwrfc.git && cd php7-sapnwrfc \
 && phpize && ./configure && make -j"$(nproc)" && make install
 RUN echo "extension=sapnwrfc.so" > "${PHP_INI_DIR}/conf.d/docker-php-ext-sapnwrfc.ini"
