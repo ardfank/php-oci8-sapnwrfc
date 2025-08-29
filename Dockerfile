@@ -29,7 +29,7 @@ RUN echo -e "/opt/oracle/instantclient\n/usr/sap/nwrfcsdk/lib" > /etc/ld.so.conf
 
 RUN echo 'instantclient,/opt/oracle/instantclient/' | pecl install oci8
 RUN docker-php-ext-enable oci8
-RUN echo 'instantclient,/opt/oracle/instantclient,21.1' | pecl install pdo_oci
+RUN echo 'instantclient,/opt/oracle/instantclient,21.6' | pecl install pdo_oci
 RUN docker-php-ext-enable pdo_oci
 RUN cd /usr/src && git clone --depth=1 --branch=1.x --single-branch https://github.com/gkralik/php7-sapnwrfc.git && cd php7-sapnwrfc \
 && phpize && ./configure && make -j"$(nproc)" && make install
