@@ -1,0 +1,16 @@
+name: Docker Image CI
+on:
+  push:
+    branches: [ "php84" ]
+  pull_request:
+    branches: [ "php84" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: ENV
+      run: env
