@@ -25,7 +25,7 @@ RUN wget https://download.oracle.com/otn_software/linux/instantclient/216000/ins
 && mv /opt/oracle/instantclient_21_6 /opt/oracle/instantclient
 COPY nwrfcsdk.zip /opt/
 RUN unzip /opt/nwrfcsdk.zip -d /usr/sap && rm -f /opt/nwrfcsdk.zip
-RUN echo -e "/opt/oracle/instantclient\n/usr/sap/nwrfcsdk/lib" > /etc/ld.so.conf.d/oci.conf && ldconfig
+RUN echo "/opt/oracle/instantclient\n/usr/sap/nwrfcsdk/lib" > /etc/ld.so.conf.d/oci.conf && ldconfig
 
 RUN echo 'instantclient,/opt/oracle/instantclient/' | pecl install oci8
 RUN docker-php-ext-enable oci8
