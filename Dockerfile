@@ -91,7 +91,6 @@ RUN printf '%s\n' \
 'autostart=true' \
 'autorestart=true' \
 > /etc/supervisor/conf.d/supervisord.conf
-RUN php -m
 EXPOSE 80
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
