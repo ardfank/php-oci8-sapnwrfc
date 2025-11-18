@@ -7,8 +7,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
     ORACLE_HOME=/opt/oracle/instantclient \
     PATH=/opt/oracle/instantclient:${PATH}
 RUN mkdir -p /var/log/entaah && chmod 777 -R /var/log/entaah
+RUN echo "deb http://deb.debian.org/debian bookworm main" > /etc/apt/sources.list.d/bookworm.list \
+    && apt-get update \
+    && apt-get install -y -t bookworm libaio1 \
+    && rm /etc/apt/sources.list.d/bookworm.list
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gnupg2 supervisor openssl ca-certificates curl git unzip libaio1 libxml2-dev libaio-dev wget bash autoconf automake libtool \
+    gnupg2 supervisor openssl ca-certificates curl git unzip libxml2-dev libaio-dev wget bash autoconf automake libtool \
     build-essential pkg-config libpng-dev libjpeg-dev libfreetype6-dev libzip-dev zlib1g-dev libpq-dev nano lsb-release
 
 RUN curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx.gpg && \
