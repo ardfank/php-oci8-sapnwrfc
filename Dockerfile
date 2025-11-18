@@ -1,4 +1,4 @@
-FROM php:8.4-fpm-bookworm
+FROM php:8.4-fpm
 ENV DEBIAN_FRONTEND=noninteractive \
     RFC_TRACE=1 \
     RFC_TRACE_DIR=/var/log/entaah \
@@ -93,5 +93,6 @@ RUN printf '%s\n' \
 > /etc/supervisor/conf.d/supervisord.conf
 EXPOSE 80
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chown -R www-data:www-data /var/www/html
 RUN chmod +x /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]
