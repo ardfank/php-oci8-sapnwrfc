@@ -1,14 +1,19 @@
-FROM php:7.4-fpm-bullseye
+FROM php:7.4-fpm
 ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_INI_DIR=/usr/local/etc/php \
     ORACLE_HOME=/opt/oracle/instantclient \
     PATH=/opt/oracle/instantclient:${PATH}
-
+RUN mkdir -p /var/log/entaah && chmod 777 -R /var/log/entaah
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    nginx supervisor openssl ca-certificates curl git unzip libaio1 libxml2-dev libaio-dev wget bash autoconf automake libtool \
-    build-essential pkg-config libpng-dev libjpeg-dev libfreetype6-dev libzip-dev zlib1g-dev libpq-dev nano \
- && rm -rf /var/lib/apt/lists/*
+    gnupg2 supervisor openssl ca-certificates curl git unzip libaio1 libxml2-dev libaio-dev wget bash autoconf automake libtool \
+    build-essential pkg-config libpng-dev libjpeg-dev libfreetype6-dev libzip-dev zlib1g-dev libpq-dev nano lsb-release
+
+RUN curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/nginx.gpg] http://nginx.org/packages/debian $(lsb_release -cs) nginx" \
+        > /etc/apt/sources.list.d/nginx.list
+RUN apt-get update && apt-get install -y nginx
+
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
  && docker-php-ext-install -j"$(nproc)" gd mysqli pdo_mysql pgsql pdo_pgsql zip \
     soap bcmath
@@ -36,12 +41,12 @@ RUN docker-php-ext-enable pdo_oci
 RUN cd /usr/src && git clone --depth=1 --branch=1.x --single-branch https://github.com/gkralik/php7-sapnwrfc.git && cd php7-sapnwrfc \
 && phpize && ./configure && make -j"$(nproc)" && make install
 RUN echo "extension=sapnwrfc.so" > "${PHP_INI_DIR}/conf.d/docker-php-ext-sapnwrfc.ini"
+RUN echo "log_errors = On\nerror_log = /var/log/entaah/php_error.log" > "${PHP_INI_DIR}/conf.d/docker-log.ini"
 RUN apt-get purge -y autoconf automake libtool && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-RUN curl -fsSL https://getcomposer.org/installer -o /tmp/composer-setup.php \
- && php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer \
- && rm -f /tmp/composer-setup.php
-
+RUN sed -i 's#access_log .*;#access_log /var/log/entaah/nginx-access.log;#' /etc/nginx/nginx.conf
+RUN sed -i 's#error_log .*;#error_log /var/log/entaah/nginx-error.log;#' /etc/nginx/nginx.conf
 RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/conf.d/default.conf || true
 RUN set -eux; \
     mkdir -p /var/www/html; \
@@ -86,9 +91,7 @@ RUN printf '%s\n' \
 > /etc/supervisor/conf.d/supervisord.conf
 
 RUN chown -R www-data:www-data /var/www/html
-RUN php -m
 EXPOSE 80
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]
-# CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
