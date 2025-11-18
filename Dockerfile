@@ -5,8 +5,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_INI_DIR=/usr/local/etc/php \
     ORACLE_HOME=/opt/oracle/instantclient \
-    PATH=/opt/oracle/instantclient:${PATH} \
-    CFLAGS="-D_GNU_SOURCE -D_DEFAULT_SOURCE -std=gnu99"
+    PATH=/opt/oracle/instantclient:${PATH}
+    # CFLAGS="-D_GNU_SOURCE -D_DEFAULT_SOURCE -std=gnu99"
 RUN mkdir -p /var/log/entaah && chmod 777 -R /var/log/entaah
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg2 supervisor openssl ca-certificates curl git unzip libxml2-dev libaio-dev wget bash autoconf automake libtool \
