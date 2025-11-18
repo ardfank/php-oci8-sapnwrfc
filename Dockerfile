@@ -1,17 +1,23 @@
-FROM php:8.4-fpm-bookworm
+FROM php:8.4-fpm
 ENV DEBIAN_FRONTEND=noninteractive \
     RFC_TRACE=1 \
     RFC_TRACE_DIR=/var/log/entaah \
     COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_INI_DIR=/usr/local/etc/php \
     ORACLE_HOME=/opt/oracle/instantclient \
-    PATH=/opt/oracle/instantclient:${PATH}
+    PATH=/opt/oracle/instantclient:${PATH} \
+    CFLAGS="-D_GNU_SOURCE -D_DEFAULT_SOURCE -std=gnu99"
 RUN mkdir -p /var/log/entaah && chmod 777 -R /var/log/entaah
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gnupg2 supervisor openssl ca-certificates curl git unzip libaio1 libxml2-dev libaio-dev wget bash autoconf automake libtool \
+    gnupg2 supervisor openssl ca-certificates curl git unzip libxml2-dev libaio-dev wget bash autoconf automake libtool \
     build-essential pkg-config libpng-dev libjpeg-dev libfreetype6-dev libzip-dev zlib1g-dev libpq-dev nano lsb-release
 
-RUN curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx.gpg && \
+RUN apt-get update && apt-get install -y wget \
+    && wget http://deb.debian.org/debian/pool/main/liba/libaio/libaio1_0.3.113-4_amd64.deb \
+    && dpkg -i libaio1_0.3.113-4_amd64.deb \
+    && rm libaio1_0.3.113-4_amd64.deb    
+
+RUN curl -fsSL https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx.gpg && \
     echo "deb [signed-by=/usr/share/keyrings/nginx.gpg] http://nginx.org/packages/debian $(lsb_release -cs) nginx" \
         > /etc/apt/sources.list.d/nginx.list
 RUN apt-get update && apt-get install -y nginx
@@ -30,7 +36,7 @@ RUN wget https://download.oracle.com/otn_software/linux/instantclient/216000/ins
 && unzip instantclient-sqlplus-linux.x64-21.6.0.0.0dbru.zip -d /opt/oracle \
 && rm -rf *.zip \
 && mv /opt/oracle/instantclient_21_6 /opt/oracle/instantclient
-COPY nwrfcsdk.zip /opt/
+COPY nwrfc750P_15-70002752.zip /opt/nwrfcsdk.zip
 RUN unzip /opt/nwrfcsdk.zip -d /usr/sap && rm -f /opt/nwrfcsdk.zip
 RUN echo "/opt/oracle/instantclient\n/usr/sap/nwrfcsdk/lib" > /etc/ld.so.conf.d/oci.conf && ldconfig
 
