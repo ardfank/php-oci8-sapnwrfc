@@ -1,12 +1,12 @@
-FROM php:8.4-fpm
+FROM php:8.5-fpm
 ENV DEBIAN_FRONTEND=noninteractive \
     RFC_TRACE=1 \
     RFC_TRACE_DIR=/var/log/entaah \
     COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_INI_DIR=/usr/local/etc/php \
     ORACLE_HOME=/opt/oracle/instantclient \
-    PATH=/opt/oracle/instantclient:${PATH}
-    # CFLAGS="-D_GNU_SOURCE -D_DEFAULT_SOURCE -std=gnu99"
+    PATH=/opt/oracle/instantclient:${PATH} \
+    CFLAGS="-D_GNU_SOURCE -D_DEFAULT_SOURCE -std=gnu99"
 RUN mkdir -p /var/log/entaah && chmod 777 -R /var/log/entaah
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg2 supervisor openssl ca-certificates curl git unzip libxml2-dev libaio-dev wget bash autoconf automake libtool \
@@ -42,8 +42,8 @@ RUN echo "/opt/oracle/instantclient\n/usr/sap/nwrfcsdk/lib" > /etc/ld.so.conf.d/
 
 RUN echo 'instantclient,/opt/oracle/instantclient/' | pecl install oci8
 RUN docker-php-ext-enable oci8
-RUN echo 'instantclient,/opt/oracle/instantclient,21.6' | pecl install pdo_oci
-RUN docker-php-ext-enable pdo_oci
+# RUN echo 'instantclient,/opt/oracle/instantclient,21.6' | pecl install pdo_oci
+# RUN docker-php-ext-enable pdo_oci
 RUN cd /usr/src && git clone --depth=1 --single-branch https://github.com/gkralik/php7-sapnwrfc.git && cd php7-sapnwrfc \
 && phpize && ./configure && make -j"$(nproc)" && make install
 
