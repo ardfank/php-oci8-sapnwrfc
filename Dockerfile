@@ -3,6 +3,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_INI_DIR=/usr/local/etc/php \
     ORACLE_HOME=/opt/oracle/instantclient \
+    RFC_TRACE_DIR=/var/log/entaah \
     PATH=/opt/oracle/instantclient:${PATH}
 RUN mkdir -p /var/log/entaah && chmod 777 -R /var/log/entaah
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -30,7 +31,7 @@ RUN wget https://download.oracle.com/otn_software/linux/instantclient/216000/ins
 && mv /opt/oracle/instantclient_21_6 /opt/oracle/instantclient
 COPY nwrfcsdk.zip /opt/
 RUN unzip /opt/nwrfcsdk.zip -d /usr/sap && rm -f /opt/nwrfcsdk.zip
-RUN echo -e "/opt/oracle/instantclient\n/usr/sap/nwrfcsdk/lib" > /etc/ld.so.conf.d/oci.conf && ldconfig
+RUN echo "/opt/oracle/instantclient\n/usr/sap/nwrfcsdk/lib" > /etc/ld.so.conf.d/oci.conf && ldconfig
 
 RUN echo 'instantclient,/opt/oracle/instantclient/' | pecl install oci8-2.2.0
 RUN docker-php-ext-enable oci8
