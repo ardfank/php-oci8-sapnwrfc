@@ -32,6 +32,9 @@ jobs:
       with:
         username: "entaahlaah"
         password: ${{ secrets.DOCKERHUBTOKEN }}
+    - name: Generate date
+      id: date
+      run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
     - name: Build and push Docker image
       uses: docker/build-push-action@v6
       with:
@@ -40,5 +43,8 @@ jobs:
         tags: |
           ghcr.io/${{ env.IMAGE_NAME }}
           entaahlaah/php74-oci8-sapnwrfc:${{ github.ref_name }}
+        labels: |
+          org.opencontainers.image.created=${{ steps.date.outputs.DATE }}
+          org.opencontainers.image.authors=EntaahLaah
         cache-from: type=gha
         cache-to: type=gha,mode=max
