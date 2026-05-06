@@ -30,7 +30,7 @@ RUN wget https://download.oracle.com/otn_software/linux/instantclient/216000/ins
 && unzip instantclient-sqlplus-linux.x64-21.6.0.0.0dbru.zip -d /opt/oracle \
 && rm -rf *.zip \
 && mv /opt/oracle/instantclient_21_6 /opt/oracle/instantclient
-COPY nwrfcsdk.zip /opt/
+COPY nwrfc750P_15-70002752.zip /opt/nwrfcsdk.zip
 RUN unzip /opt/nwrfcsdk.zip -d /usr/sap && rm -f /opt/nwrfcsdk.zip
 RUN echo "/opt/oracle/instantclient\n/usr/sap/nwrfcsdk/lib" > /etc/ld.so.conf.d/oci.conf && ldconfig
 
