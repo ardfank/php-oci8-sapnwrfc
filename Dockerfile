@@ -1,10 +1,11 @@
 FROM php:7.4-fpm
 ENV DEBIAN_FRONTEND=noninteractive \
+    RFC_TRACE=1 \
+    RFC_TRACE_DIR=/var/log/entaah \
     COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_INI_DIR=/usr/local/etc/php \
     ORACLE_HOME=/opt/oracle/instantclient \
-    RFC_TRACE_DIR=/var/log/entaah \
-    PATH=/opt/oracle/instantclient:${PATH}
+    PATH=/opt/oracle/instantclient:${PATH}    
 RUN mkdir -p /var/log/entaah && chmod 777 -R /var/log/entaah
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg2 supervisor openssl ca-certificates curl git unzip libaio1 libxml2-dev libaio-dev wget bash autoconf automake libtool \
