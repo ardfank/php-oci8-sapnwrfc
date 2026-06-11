@@ -56,7 +56,6 @@ jobs:
           entaahlaah/php74-oci8-sapnwrfc:${{ github.ref_name }}
           entaahlaah/php74-oci8-sapnwrfc:${{ steps.date.outputs.PHP_VERSION }}
         labels: |
-          org.opencontainers.image.created=${{ steps.date.outputs.DATE }}
           org.opencontainers.image.authors=EntaahLaah
         cache-from: type=gha
         cache-to: type=gha,mode=max
