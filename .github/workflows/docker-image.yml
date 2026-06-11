@@ -32,7 +32,7 @@ jobs:
       with:
         username: "entaahlaah"
         password: ${{ secrets.DOCKERHUBTOKEN }}
-    - name: Generate date
+    - name: Generate ENV
       id: date
       run: |
         echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
@@ -45,16 +45,18 @@ jobs:
         echo "DATE: ${{ steps.date.outputs.DATE }}"
         echo "BASE IMAGE: ${{ steps.date.outputs.BASE_IMAGE }}"
         echo "PHP VERSION: ${{ steps.date.outputs.PHP_VERSION }}"
-    # - name: Build and push Docker image
-    #   uses: docker/build-push-action@v6
-    #   with:
-    #     context: .
-    #     push: true
-    #     tags: |
-    #       ghcr.io/${{ env.IMAGE_NAME }}
-    #       entaahlaah/php74-oci8-sapnwrfc:${{ github.ref_name }}
-    #     labels: |
-    #       org.opencontainers.image.created=${{ steps.date.outputs.DATE }}
-    #       org.opencontainers.image.authors=EntaahLaah
-    #     cache-from: type=gha
-    #     cache-to: type=gha,mode=max
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: true
+        tags: |
+          ghcr.io/${{ env.IMAGE_NAME }}
+          ghcr.io/${{ github.repository }}:${{ steps.date.outputs.PHP_VERSION }}
+          entaahlaah/php74-oci8-sapnwrfc:${{ github.ref_name }}
+          entaahlaah/php74-oci8-sapnwrfc:${{ steps.date.outputs.PHP_VERSION }}
+        labels: |
+          org.opencontainers.image.created=${{ steps.date.outputs.DATE }}
+          org.opencontainers.image.authors=EntaahLaah
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
