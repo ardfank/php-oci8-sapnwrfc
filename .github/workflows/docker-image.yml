@@ -34,10 +34,17 @@ jobs:
         password: ${{ secrets.DOCKERHUBTOKEN }}
     - name: Generate date
       id: date
-      run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+      run: |
+        echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+        BASE_IMAGE=$(head -1 Dockerfile | sed 's/FROM //')
+        echo "BASE_IMAGE=$BASE_IMAGE" >> $GITHUB_OUTPUT
+        docker run --rm $BASE_IMAGE env > envs.txt
+        grep "PHP_VERSION=" envs.txt >> $GITHUB_OUTPUT
     - name: Check ENV
       run: |
-        echo ${{ steps.date.outputs.DATE }}
+        echo "DATE: ${{ steps.date.outputs.DATE }}"
+        echo "BASE IMAGE: ${{ steps.date.outputs.BASE_IMAGE }}"
+        echo "PHP VERSION: ${{ steps.date.outputs.PHP_VERSION }}"
     # - name: Build and push Docker image
     #   uses: docker/build-push-action@v6
     #   with:
