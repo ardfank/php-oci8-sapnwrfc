@@ -39,6 +39,7 @@ jobs:
         BASE_IMAGE="7.4.33-trixie"
         PHP_VERSION="7.4.33-trixie"
         echo "BASE_IMAGE=$BASE_IMAGE" >> $GITHUB_OUTPUT
+        echo "PHP_VERSION=$PHP_VERSION" >> $GITHUB_OUTPUT
         # docker run --rm $BASE_IMAGE env > envs.txt
         # grep "PHP_VERSION=" envs.txt >> $GITHUB_OUTPUT
     - name: Check ENV
