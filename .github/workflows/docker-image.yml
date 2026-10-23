@@ -37,9 +37,10 @@ jobs:
       run: |
         echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
         BASE_IMAGE="7.4.33-trixie"
+        PHP_VERSION="7.4.33-trixie"
         echo "BASE_IMAGE=$BASE_IMAGE" >> $GITHUB_OUTPUT
-        docker run --rm $BASE_IMAGE env > envs.txt
-        grep "PHP_VERSION=" envs.txt >> $GITHUB_OUTPUT
+        # docker run --rm $BASE_IMAGE env > envs.txt
+        # grep "PHP_VERSION=" envs.txt >> $GITHUB_OUTPUT
     - name: Check ENV
       run: |
         echo "DATE: ${{ steps.date.outputs.DATE }}"
