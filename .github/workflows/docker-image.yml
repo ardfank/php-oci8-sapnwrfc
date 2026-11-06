@@ -38,8 +38,15 @@ jobs:
         echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
         BASE_IMAGE=$(head -1 Dockerfile | sed 's/FROM //')
         echo "BASE_IMAGE=$BASE_IMAGE" >> $GITHUB_OUTPUT
-        docker run --rm $BASE_IMAGE env > envs.txt
-        grep "PHP_VERSION=" envs.txt >> $GITHUB_OUTPUT
+        cat >dockerenv<<EOF
+        FROM ${BASE_IMAGE}
+        RUN NGINX=$(curl -fsSL https://nginx.org/packages/debian/pool/nginx/n/nginx/ \
+            | grep -oP "nginx_\K[0-9]+\.[0-9]+\.[0-9]+(?=-1~$(. /etc/os-release && echo "$VERSION_CODENAME")_amd64\.deb)" \
+            | sort -Vu | tail -1) && echo "NGINX_VERSION=${NGINX}" >> env.txt && \
+            echo "PHP_VERSION=${PHP_VERSION}" >> env.txt
+        EOF
+        docker build -f dockerenv -t temp .
+        docker run --rm temp cat env.txt >> $GITHUB_OUTPUT
     - name: Check ENV
       run: |
         echo "DATE: ${{ steps.date.outputs.DATE }}"
