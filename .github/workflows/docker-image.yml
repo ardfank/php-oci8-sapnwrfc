@@ -48,6 +48,7 @@ jobs:
         docker build -f dockerenv -t temp .
         docker run --rm temp cat env.txt >> $GITHUB_OUTPUT
         cat "$GITHUB_OUTPUT"
+        cat dockerenv
     - name: Check ENV
       run: |
         echo "DATE: ${{ steps.date.outputs.DATE }}"
