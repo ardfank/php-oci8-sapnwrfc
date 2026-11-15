@@ -38,7 +38,7 @@ jobs:
         echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
         BASE_IMAGE=$(head -1 Dockerfile | sed 's/FROM //')
         echo "BASE_IMAGE=$BASE_IMAGE" >> $GITHUB_OUTPUT
-        cat >dockerenv<<EOF
+        cat >dockerenv<<'EOF'
         FROM ${BASE_IMAGE}
         RUN NGINX=$(curl -fsSL https://nginx.org/packages/debian/pool/nginx/n/nginx/ \
             | grep -oP "nginx_\K[0-9]+\.[0-9]+\.[0-9]+(?=-1~$(. /etc/os-release && echo "$VERSION_CODENAME")_amd64\.deb)" \
