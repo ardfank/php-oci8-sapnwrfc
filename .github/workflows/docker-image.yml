@@ -1,9 +1,5 @@
 name: Docker Image CI
 on:
-  # push:
-  #   branches: [ "php84","php74" ]
-  # pull_request:
-  #   branches: [ "php84","php74" ]
   workflow_dispatch:
 
 env:
@@ -48,26 +44,25 @@ jobs:
         cat dockerenv
         docker build -f dockerenv -t temp .
         docker run --rm temp cat env.txt >> $GITHUB_OUTPUT
-        cat "$GITHUB_OUTPUT"
     - name: Check ENV
       run: |
         echo "DATE: ${{ steps.date.outputs.DATE }}"
         echo "BASE IMAGE: ${{ steps.date.outputs.BASE_IMAGE }}"
         echo "PHP VERSION: ${{ steps.date.outputs.PHP_VERSION }}"
         echo "NGINX VERSION: ${{ steps.date.outputs.NGINX_VERSION }}"
-    # - name: Build and push Docker image
-    #   uses: docker/build-push-action@v6
-    #   with:
-    #     context: .
-    #     push: true
-    #     tags: |
-    #       ghcr.io/${{ env.IMAGE_NAME }}
-    #       ghcr.io/${{ github.repository }}:${{ steps.date.outputs.PHP_VERSION }}
-    #       entaahlaah/php74-oci8-sapnwrfc:${{ github.ref_name }}
-    #       entaahlaah/php74-oci8-sapnwrfc:${{ steps.date.outputs.PHP_VERSION }}
-    #     labels: |
-    #       org.opencontainers.image.authors=EntaahLaah
-    #       nginx.version=${{ steps.date.outputs.NGINX_VERSION }}
-    #       php.version=${{ steps.date.outputs.PHP_VERSION }}
-    #     cache-from: type=gha
-    #     cache-to: type=gha,mode=max
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: true
+        tags: |
+          ghcr.io/${{ env.IMAGE_NAME }}
+          ghcr.io/${{ github.repository }}:${{ steps.date.outputs.PHP_VERSION }}
+          entaahlaah/php74-oci8-sapnwrfc:${{ github.ref_name }}
+          entaahlaah/php74-oci8-sapnwrfc:${{ steps.date.outputs.PHP_VERSION }}
+        labels: |
+          org.opencontainers.image.authors=EntaahLaah
+          php.version=${{ steps.date.outputs.PHP_VERSION }}
+          nginx.version=${{ steps.date.outputs.NGINX_VERSION }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
