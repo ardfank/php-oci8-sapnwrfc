@@ -1,4 +1,4 @@
-FROM php:8.5-fpm
+FROM php:8.6-fpm
 ENV DEBIAN_FRONTEND=noninteractive \
     RFC_TRACE=1 \
     RFC_TRACE_DIR=/var/log/entaah \
