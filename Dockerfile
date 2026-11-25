@@ -6,14 +6,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PHP_INI_DIR=/usr/local/etc/php \
     ORACLE_HOME=/opt/oracle/instantclient \
     PATH=/opt/oracle/instantclient:${PATH}
-    # CFLAGS="-D_GNU_SOURCE -D_DEFAULT_SOURCE -std=gnu99"
 RUN mkdir -p /var/log/entaah && chmod 777 -R /var/log/entaah
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg2 supervisor openssl ca-certificates curl git unzip libxml2-dev libaio-dev wget bash autoconf automake libtool \
     build-essential pkg-config libpng-dev libjpeg-dev libfreetype6-dev libzip-dev zlib1g-dev libpq-dev nano lsb-release
 
-RUN apt-get update && apt-get install -y wget \
-    && wget http://deb.debian.org/debian/pool/main/liba/libaio/libaio1_0.3.113-4_amd64.deb \
+RUN wget http://deb.debian.org/debian/pool/main/liba/libaio/libaio1_0.3.113-4_amd64.deb \
     && dpkg -i libaio1_0.3.113-4_amd64.deb \
     && rm libaio1_0.3.113-4_amd64.deb    
 
@@ -25,7 +23,8 @@ RUN apt-get update && apt-get install -y nginx
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
  && docker-php-ext-install -j"$(nproc)" gd mysqli pdo_mysql pgsql pdo_pgsql zip \
     soap bcmath exif
-RUN pecl install redis && docker-php-ext-enable redis
+COPY --from=ghcr.io/php/pie:bin /pie /usr/bin/pie    
+RUN pie install phpredis/phpredis
 
 RUN mkdir /opt/oracle
 RUN wget https://download.oracle.com/otn_software/linux/instantclient/216000/instantclient-basic-linux.x64-21.6.0.0.0dbru.zip \
@@ -40,12 +39,18 @@ COPY nwrfc750P_15-70002752.zip /opt/nwrfcsdk.zip
 RUN unzip /opt/nwrfcsdk.zip -d /usr/sap && rm -f /opt/nwrfcsdk.zip
 RUN echo "/opt/oracle/instantclient\n/usr/sap/nwrfcsdk/lib" > /etc/ld.so.conf.d/oci.conf && ldconfig
 
-RUN echo 'instantclient,/opt/oracle/instantclient/' | pecl install oci8
-RUN docker-php-ext-enable oci8
-RUN echo 'instantclient,/opt/oracle/instantclient,21.6' | pecl install pdo_oci
-RUN docker-php-ext-enable pdo_oci
+RUN pie install oci8/oci8 --with-oci8=instantclient,/opt/oracle/instantclient/
+RUN pie install pecl/pdo_oci --with-pdo_oci=instantclient,/opt/oracle/instantclient/ || \
+    (find /root/.config/pie -path '*/vendor/pecl/pdo_oci/oci_statement.c' \
+      -exec sed -i 's/EMPTY_SWITCH_DEFAULT_CASE();/default: ZEND_UNREACHABLE();/' {} \; \
+      && cd "$(dirname "$(find /root/.config/pie -path '*/vendor/pecl/pdo_oci/Makefile' | head -1)")" \
+      && make clean && make && make install) && docker-php-ext-enable pdo_oci
 RUN cd /usr/src && git clone --depth=1 --single-branch https://github.com/gkralik/php7-sapnwrfc.git && cd php7-sapnwrfc \
-&& phpize && ./configure && make -j"$(nproc)" && make install
+    && find . -name '*.c' -exec sed -i \
+        -e 's/XtOffsetOf(/offsetof(/g' \
+        -e 's/ZVAL_IS_NULL(\&\([a-zA-Z_][a-zA-Z0-9_]*\))/Z_TYPE(\1) == IS_NULL/g' \
+        {} + && sed -i '1i#include <stddef.h>' sapnwrfc.c \
+    && phpize && ./configure && make -j"$(nproc)" && make install
 
 RUN echo "extension=sapnwrfc.so" > "${PHP_INI_DIR}/conf.d/docker-php-ext-sapnwrfc.ini"
 RUN echo "log_errors = On\nerror_log = /var/log/entaah/php_error.log" > "${PHP_INI_DIR}/conf.d/docker-log.ini"
